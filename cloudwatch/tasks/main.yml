@@ -1,0 +1,3 @@
+---
+  - include_tasks: cloudwatch.yml
+  - include_tasks: SNStopic.yml

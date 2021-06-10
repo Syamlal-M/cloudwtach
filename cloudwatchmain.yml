@@ -1,0 +1,6 @@
+---
+  - name: "installing cloudwatch on amazon linux"
+    hosts: localhost
+    become: yes
+    roles:
+          - cloudwatch 

@@ -1,0 +1,47 @@
+---
+ - name: "install cloudwatch libraries"
+   yum:  name= "{{item}}" state=present
+   with_items: 
+    - unzip
+    - libwww-perl
+    - libdatetime-perl
+
+
+ - name: " download scripts"
+   get_url: 
+      url: "{{URL}}"
+      dest: /tmp/CloudWatchMonitoringScripts.zip
+
+ - name: "chown the file and make it writeable"
+   file: path=/tmp/CloudWatchMonitoringScripts.zip mode=0755
+ 
+ - name: "confrm the zip file in the directory"
+   stat: path=/tmp/aws-scripts-mon
+   register: files
+
+ - name: "unzip the scripts"
+   shell: "cd /tmp && unzip /tmp/CloudWatchMonitoringScripts.zip"
+   when: files.stat.exists  == False
+
+ - name: delete archive
+   file: path=/tmp/CloudWatchMonitoringScripts.zip state=absent
+
+ - name: "state check"
+   stat: path=/root/aws-scripts-mon
+   register: pathstate
+ 
+ 
+ - name: "move directory out of /tmp"
+   command: mv /tmp/aws-scripts-mon  /root/
+   when: pathstate.stat.exists == false
+
+
+ - name: "set Secret key in credentials file"
+   template:
+          src=keydetails.j2 dest=/root/aws-scripts-mon/awscreds.conf
+
+
+ - name: "add command to cron"
+   lineinfile: dest=/etc/crontab insertafter=EOF line="* * * * * root /root/aws-scripts-mon/mon-put-instance-data.pl     --disk-path={{partition}} --disk-space-util --disk-space-used --disk-space-avail"
+
+
